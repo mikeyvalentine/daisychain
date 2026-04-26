@@ -1,0 +1,72 @@
+@font-face {
+  font-family: 'AuthenticSans';
+  src: url('../fonts/authentic-sans-master/authentic-sans-150.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'AuthenticSans60';
+  src: url('../fonts/authentic-sans-master/authentic-sans-60.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Zaberkesa';
+  src: url('../fonts/ZaberkesaByArixbored-Regular.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Zaberkesa';
+  src: url('../fonts/kiddo-regular.otf') format('truetype');
+}
+
+:root {
+  --font-main:         'Zaberkesa', sans-serif;
+  --font-authentic:    'AuthenticSans', sans-serif;
+  --font-authentic-60: 'AuthenticSans60', sans-serif;
+  --size-header:       18px;
+  --size-regular:      18px;
+  --text-small:        14px;
+  --text-regular-color: #333;
+  --text-spacing:      2px;
+}
+
+html {
+  cursor: url('../assets/cursors/cursor-pointer.svg'), pointer;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  cursor: url('../assets/cursors/cursor-pointer.svg'), pointer;
+}
+
+#sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #f7f2e8 0%, #e5e7ef 50%, #f4ecf1 100%);
+  pointer-events: none;
+}
+#garden {
+  background: linear-gradient(180deg, #add1e3 0%, #c7f4c9 50%, #5bfd76 100%) !important;
+}
+#town {
+  background: linear-gradient(180deg, #47413e 0%, #6b4640 50%, #864932 100%) !important;
+}
+
+body {
+  font-family: var(--font-main);
+  color: #000000;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  cursor: url('../assets/cursors/cursor-pointer.svg'), pointer;
+}
+
+canvas:hover {
+  cursor: url('/assets/cursors/cursor-pointer.svg'), pointer;
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daisychain</title>
+  <link rel="icon" href="assets/dc_icon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/game.css">
+</head>
+<body>
+
+  <div id="sky"></div>
+
+  <!-- Fixed UI -->
+  <div id="left-panel">
+    <div id="inventory">
+      <div id="inv-title"></div>
+      <div id="inv-list"></div>
+    </div>
+  </div>
+
+  <div id="tools">
+    <div id="tools-title">tools</div>
+    <div id="tools-list"></div>
+  </div>
+
+  <!-- Event log -->
+  <div id="log"></div>
+
+  <!-- Panel toggles -->
+  <button id="toggle-inv"   class="panel-toggle toggle-left"  data-target="left-panel">‹</button>
+  <button id="toggle-log"   class="panel-toggle toggle-left toggle-bottom" data-target="log">‹</button>
+  <button id="toggle-tools" class="panel-toggle toggle-right" data-target="tools">›</button>
+
+  <!-- Settings icon -->
+  <canvas id="settings-icon" width="80" height="80"></canvas>
+
+  <!-- Settings panel -->
+  <div id="settings-panel" class="hidden">
+    <div id="settings-fields"></div>
+    <div id="settings-actions">
+      <button class="dbg-btn" id="st-zero">zero all</button>
+      <button class="dbg-btn" id="st-apply">apply</button>
+      <button class="dbg-btn" id="st-reset-timers">reset timers</button>
+      <button class="dbg-btn" id="st-reset-all">reset all</button>
+    </div>
+  </div>
+
+  <!-- Scrollable areas -->
+  <div class="area" id="area-home">
+    <div id="actions">
+      <div class="blob-cell">
+        <canvas id="forage-canvas" class="blob-btn" width="144" height="128"></canvas>
+        <span class="blob-label">forage</span>
+      </div>
+      <div class="blob-cell">
+        <canvas id="search-canvas" class="blob-btn" width="144" height="128"></canvas>
+        <span class="blob-label">search</span>
+      </div>
+      <div class="blob-cell">
+        <canvas id="dig-canvas" class="blob-btn" width="144" height="128"></canvas>
+        <span class="blob-label">dig</span>
+      </div>
+      <div class="blob-cell">
+        <canvas id="call-canvas" class="blob-btn" width="144" height="128"></canvas>
+        <span class="blob-label">call</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="area" id="garden"></div>
+  <div class="area" id="town"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.min.js"></script>
+  <script src="game.js"></script>
+  <script src="tools.js"></script>
+  <script src="areas.js"></script>
+  <script src="inventory.js"></script>
+  <script src="log.js"></script>
+  <script src="animations.js"></script>
+  <script src="daynight.js"></script>
+  <script src="scroll.js"></script>
+  <script src="init.js"></script>
+</body>
+</html>

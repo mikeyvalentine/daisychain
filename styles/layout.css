@@ -1,0 +1,42 @@
+#left-panel {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  z-index: 10;
+}
+
+#left-panel.panel-hidden {
+  transform: translateX(calc(-100% - 40px));
+  opacity: 0;
+}
+
+.area {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+#actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  align-items: center;
+  justify-items: center;
+}
+
+.blob-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.blob-cell:hover {
+  z-index: 10;
+}
