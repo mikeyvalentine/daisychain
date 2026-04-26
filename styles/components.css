@@ -6,7 +6,7 @@
 }
 
 .blob-btn.on-cooldown {
-  cursor: url('/assets/cursors/cursor-hourglass.svg'), wait;
+  cursor: url('../assets/cursors/cursor-hourglass.svg'), wait;
 }
 
 .blob-label {
