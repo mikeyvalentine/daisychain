@@ -1,0 +1,11 @@
+@media (hover: none), (pointer: coarse) {
+  #tooltip {
+    display: none !important;
+  }
+
+  :root {
+    --size-header: 27px;
+    --size-regular: 27px;
+    --text-small: 21px;
+  }
+}

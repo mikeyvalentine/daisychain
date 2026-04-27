@@ -23,6 +23,7 @@ const unlockedButtons = loadUnlocked();
     { condition: () => toolInventory['rusty blade'] > 0,                                                         button: 'forage' },
     { condition: () => toolInventory['collapsible shovel'] > 0,                                                   button: 'dig'    },
     { condition: () => toolInventory['red fox 40 whistle'] > 0 && toolInventory['oxidized copper harp'] > 0,     button: 'call'   },
+    { condition: () => toolInventory['bruk forest axe'] > 0,                                               button: 'chop'   },
   ];
   let changed = false;
   rules.forEach(({ condition, button }) => {
@@ -45,23 +46,57 @@ const tooltip = document.createElement('div');
 tooltip.id = 'tooltip';
 document.body.appendChild(tooltip);
 
-BUTTONS.forEach(({ id, resource, color, shape, innerCorner }) => {
-  const canvas = document.getElementById(`${id}-canvas`);
-  const ctx    = canvas.getContext('2d');
+let cancelTooltipReveal = null;
+
+BUTTONS.forEach(({ id, cooldownMult, color, shape, innerCorner }) => {
+  const canvas     = document.getElementById(`${id}-canvas`);
+  const ctx        = canvas.getContext('2d');
+  const cooldownMs = COOLDOWN_MS * cooldownMult;
 
   const { drawFull, drawReveal } = createBlobRenderer(ctx, color, shape, innerCorner);
 
   drawFull();
 
-  let onCooldown = false;
-  let cancelAnim = null;
-  let isHovered  = false;
+  let onCooldown  = false;
+  let cancelAnim  = null;
+  let isHovered   = false;
+  let animStart   = null;
+  let animText    = null;
 
   const cell = canvas.parentElement;
+
+  function showReveal() {
+    if (!animStart || !animText) return;
+    if (cancelTooltipReveal) { cancelTooltipReveal(); cancelTooltipReveal = null; }
+    const display = animText;
+    const chars = display.split('');
+    const charFadeDuration = 150;
+    const totalStagger = Math.max(0, cooldownMs - charFadeDuration);
+    tooltip.innerHTML = chars.map(c => `<span style="opacity:0;transition:none">${c}</span>`).join('');
+    const spans = Array.from(tooltip.querySelectorAll('span'));
+    function tickFn(now) {
+      const elapsed = now - animStart;
+      spans.forEach((span, i) => {
+        const staggerStart = (i / chars.length) * totalStagger;
+        const t = Math.max(0, Math.min((elapsed - staggerStart) / charFadeDuration, 1));
+        span.style.opacity = t.toFixed(3);
+      });
+      if (elapsed >= totalStagger + charFadeDuration) {
+        offTick(tickFn);
+        tooltip.textContent = display;
+        cancelTooltipReveal = null;
+        animStart = null;
+      }
+    }
+    cancelTooltipReveal = () => { offTick(tickFn); cancelTooltipReveal = null; };
+    onTick(tickFn);
+  }
 
   function resetCooldown() {
     if (cancelAnim) { cancelAnim(); cancelAnim = null; }
     onCooldown = false;
+    animStart = null;
+    animText  = null;
     canvas.classList.remove('on-cooldown');
     cell.classList.remove('on-cooldown');
     if (isHovered) tooltip.classList.remove('on-cooldown');
@@ -73,14 +108,16 @@ BUTTONS.forEach(({ id, resource, color, shape, innerCorner }) => {
 
   canvas.addEventListener('mouseenter', e => {
     isHovered = true;
-    tooltip.textContent = id;
+    if (cancelTooltipReveal) { cancelTooltipReveal(); cancelTooltipReveal = null; }
+    const display = id.charAt(0).toUpperCase() + id.slice(1);
+    tooltip.textContent = display;
     tooltip.style.left = (e.clientX + 14) + 'px';
     tooltip.style.top  = (e.clientY - 18) + 'px';
     if (onCooldown) {
       tooltip.style.transition = '';
       tooltip.classList.add('on-cooldown');
+      showReveal();
     } else {
-      // Suppress color transition so it snaps to black immediately
       tooltip.style.transition = 'opacity 0.15s ease';
       tooltip.classList.remove('on-cooldown');
       requestAnimationFrame(() => { tooltip.style.transition = ''; });
@@ -95,6 +132,7 @@ BUTTONS.forEach(({ id, resource, color, shape, innerCorner }) => {
 
   canvas.addEventListener('mouseleave', () => {
     isHovered = false;
+    if (cancelTooltipReveal) { cancelTooltipReveal(); cancelTooltipReveal = null; }
     tooltip.classList.remove('visible');
   });
 
@@ -102,9 +140,14 @@ BUTTONS.forEach(({ id, resource, color, shape, innerCorner }) => {
     if (onCooldown) return;
     if (cancelAnim) { cancelAnim(); cancelAnim = null; }
     onCooldown = true;
+    animStart = performance.now();
+    animText  = id.charAt(0).toUpperCase() + id.slice(1);
     canvas.classList.add('on-cooldown');
     cell.classList.add('on-cooldown');
-    if (isHovered) tooltip.classList.add('on-cooldown');
+    if (isHovered) {
+      tooltip.classList.add('on-cooldown');
+      showReveal();
+    }
 
     let loot = pickLoot(LOOT_TABLES[id]);
     if (loot.type === 'tool' && toolInventory[loot.item] > 0) {
@@ -130,73 +173,27 @@ BUTTONS.forEach(({ id, resource, color, shape, innerCorner }) => {
     cancelAnim = runCooldownAnimation(canvas, drawReveal, drawFull,
       () => {
         onCooldown = false;
+        animStart = null;
+        animText  = null;
         canvas.classList.remove('on-cooldown');
         cell.classList.remove('on-cooldown');
-        if (isHovered) tooltip.classList.remove('on-cooldown');
+        if (isHovered) {
+          tooltip.classList.remove('on-cooldown');
+          if (cancelTooltipReveal) { cancelTooltipReveal(); cancelTooltipReveal = null; }
+          tooltip.textContent = id.charAt(0).toUpperCase() + id.slice(1);
+        }
       },
       () => {
         cancelAnim = null;
-      }
+      },
+      cooldownMs
     );
   });
 
   if (!unlockedButtons.includes(id)) {
-    cell.style.opacity       = '0';
-    cell.style.transform     = 'scale(0)';
-    cell.style.pointerEvents = 'none';
+    cell.style.display = 'none';
   }
 });
-
-function unlockButton(id) {
-  if (unlockedButtons.includes(id)) return;
-  unlockedButtons.push(id);
-  saveUnlocked(unlockedButtons);
-
-  const canvas = document.getElementById(`${id}-canvas`);
-  if (!canvas) return;
-  const cell = canvas.parentElement;
-
-  const start = performance.now();
-  (function tick(now) {
-    const t = Math.min((now - start) / COOLDOWN_MS, 1);
-    const e = easeOut(t);
-    cell.style.opacity       = e.toFixed(3);
-    cell.style.transform     = `scale(${e.toFixed(3)})`;
-    if (t < 1) {
-      requestAnimationFrame(tick);
-    } else {
-      cell.style.opacity       = '';
-      cell.style.transform     = '';
-      cell.style.pointerEvents = '';
-    }
-  })(performance.now());
-}
-
-function lockButton(id) {
-  const idx = unlockedButtons.indexOf(id);
-  if (idx === -1) return;
-  unlockedButtons.splice(idx, 1);
-  saveUnlocked(unlockedButtons);
-
-  const canvas = document.getElementById(`${id}-canvas`);
-  if (!canvas) return;
-  const cell = canvas.parentElement;
-  cell.style.pointerEvents = 'none';
-
-  const start = performance.now();
-  (function tick(now) {
-    const t = Math.min((now - start) / COOLDOWN_MS, 1);
-    const e = easeOut(t);
-    cell.style.opacity   = (1 - e).toFixed(3);
-    cell.style.transform = `scale(${(1 - e).toFixed(3)})`;
-    if (t < 1) {
-      requestAnimationFrame(tick);
-    } else {
-      cell.style.opacity   = '0';
-      cell.style.transform = 'scale(0)';
-    }
-  })(performance.now());
-}
 
 // ── Settings ───────────────────────────────────────────────────────────────
 
@@ -214,7 +211,8 @@ function lockButton(id) {
   const BASE_OFFSET = -Math.PI / 2;
 
   let outlined      = false;
-  let animId        = null;
+  let spinning      = false;
+  let spinTick      = null;
   let alertTimeout  = null;
 
   function drawFlowerAt(angle) {
@@ -246,13 +244,14 @@ function lockButton(id) {
   }
 
   function runSpin() {
-    if (animId) return;
+    if (spinning) return;
+    spinning = true;
     const start    = performance.now();
     const DURATION = 500;
     const TOTAL    = Math.PI * 2;
     const MAX_BLUR = 2;
 
-    function tick(now) {
+    spinTick = function(now) {
       const elapsed = Math.min(now - start, DURATION);
       const t       = elapsed / DURATION;
       const angle   = easeInOut(t) * TOTAL;
@@ -261,23 +260,23 @@ function lockButton(id) {
       canvas.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : '';
       drawFlowerAt(angle);
 
-      if (elapsed < DURATION) {
-        animId = requestAnimationFrame(tick);
-      } else {
+      if (elapsed >= DURATION) {
+        offTick(spinTick);
+        spinning = false;
+        spinTick = null;
         drawFlowerAt(0);
         canvas.style.filter = '';
-        animId = null;
         if (outlined) alertTimeout = setTimeout(runSpin, 1000);
       }
-    }
+    };
 
-    animId = requestAnimationFrame(tick);
+    onTick(spinTick);
   }
 
   function dismissAlert() {
     outlined = false;
     if (alertTimeout) { clearTimeout(alertTimeout); alertTimeout = null; }
-    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    if (spinning && spinTick) { offTick(spinTick); spinTick = null; spinning = false; }
     canvas.style.filter = '';
     drawFlowerAt(0);
   }
@@ -290,7 +289,7 @@ function lockButton(id) {
   window.triggerFlowerEvent = function() {
     outlined = true;
     if (alertTimeout) { clearTimeout(alertTimeout); alertTimeout = null; }
-    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    if (spinning && spinTick) { offTick(spinTick); spinTick = null; spinning = false; }
     drawFlowerAt(0);
     runSpin();
   };
@@ -331,6 +330,20 @@ document.addEventListener('click', e => {
   }
 });
 
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.tab === 'sound' && !soundTabSeen) {
+      soundTabSeen = true;
+      localStorage.setItem('daisychain_sound_seen', 'true');
+      tab.classList.remove('tab-new');
+    }
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
 document.getElementById('st-zero').addEventListener('click', () => {
   Object.keys(inventory).forEach(k => {
     const el = document.getElementById(`st-inp-${k}`);
@@ -359,70 +372,30 @@ document.getElementById('st-reset-all').addEventListener('click', () => {
   settingsPanel.classList.add('hidden');
 });
 
-// ── Progression unlocks ────────────────────────────────────────────────────
+// ── Sound tab visibility ───────────────────────────────────────────────────
 
-function checkUnlocks() {
-  const rules = [
-    { button: 'forage', condition: () => toolInventory['rusty blade'] > 0                                                     },
-    { button: 'dig',    condition: () => toolInventory['collapsible shovel'] > 0                                               },
-    { button: 'call',   condition: () => toolInventory['red fox 40 whistle'] > 0 && toolInventory['oxidized copper harp'] > 0 },
-  ];
-  rules.forEach(({ button, condition }) => {
-    if (condition()) unlockButton(button);
-    else             lockButton(button);
-  });
+let soundTabSeen = localStorage.getItem('daisychain_sound_seen') === 'true';
+
+function updateSoundTab() {
+  const tab = document.querySelector('.settings-tab[data-tab="sound"]');
+  const hasDiscman = toolInventory['silver plastic discman'] >= 1;
+  tab.style.display = hasDiscman ? '' : 'none';
+  tab.classList.toggle('tab-new', hasDiscman && !soundTabSeen);
+  if (!hasDiscman && tab.classList.contains('active')) {
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-pane').forEach(p => p.classList.remove('active'));
+    document.querySelector('.settings-tab[data-tab="settings"]').classList.add('active');
+    document.getElementById('tab-settings').classList.add('active');
+  }
 }
 
-// ── Dev console commands ───────────────────────────────────────────────────
-
-window.give = function(tool) {
-  if (tool === 'all') {
-    TOOLS.forEach(t => { toolInventory[t] = 1; });
-    saveTools(toolInventory); renderTools(toolInventory); checkUnlocks();
-    console.log('gave: all tools');
-    return;
-  }
-  if (!TOOLS.includes(tool)) { console.warn(`unknown tool: "${tool}"\nvalid: ${TOOLS.join(', ')}`); return; }
-  const wasZero = !toolInventory[tool];
-  toolInventory[tool] = 1;
-  saveTools(toolInventory); renderTools(toolInventory); checkUnlocks();
-  if (wasZero && (tool === 'silver plastic discman' || tool === 'orange foam portapros')) triggerFlowerEvent();
-  console.log(`gave: ${tool}`);
-};
-
-window.remove = function(tool) {
-  if (tool === 'all') {
-    TOOLS.forEach(t => { toolInventory[t] = 0; });
-    saveTools(toolInventory); renderTools(toolInventory); checkUnlocks();
-    console.log('removed: all tools');
-    return;
-  }
-  if (!TOOLS.includes(tool)) { console.warn(`unknown tool: "${tool}"\nvalid: ${TOOLS.join(', ')}`); return; }
-  toolInventory[tool] = Math.max(0, (toolInventory[tool] || 0) - 1);
-  saveTools(toolInventory); renderTools(toolInventory); checkUnlocks();
-  console.log(`removed: ${tool} (now ${toolInventory[tool]})`);
-};
-
-window.reset = function() {
-  localStorage.clear();
-  location.reload();
-};
+updateSoundTab();
 
 // ── Panel toggles ──────────────────────────────────────────────────────────
 
-(function initPanelToggles() {
-  const panels = {
-    'toggle-inv':   { el: document.getElementById('left-panel'), showChar: '‹', hideChar: '›', hidden: false },
-    'toggle-log':   { el: document.getElementById('log'),        showChar: '‹', hideChar: '›', hidden: false },
-    'toggle-tools': { el: document.getElementById('tools'),      showChar: '›', hideChar: '‹', hidden: false },
-  };
-
-  Object.entries(panels).forEach(([btnId, panel]) => {
-    const btn = document.getElementById(btnId);
-    btn.addEventListener('click', () => {
-      panel.hidden = !panel.hidden;
-      panel.el.classList.toggle('panel-hidden', panel.hidden);
-      btn.textContent = panel.hidden ? panel.hideChar : panel.showChar;
-    });
-  });
-})();
+[
+  document.getElementById('left-panel'),
+  document.getElementById('tools'),
+].forEach(el => {
+  el.addEventListener('click', () => el.classList.toggle('panel-hidden'));
+});

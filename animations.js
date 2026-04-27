@@ -43,6 +43,20 @@ const SHAPES = {
     ctx.bezierCurveTo(66, 93, 110, 77, 99, 45);
     ctx.stroke();
   },
+  chop(ctx) {
+    ctx.save();
+    ctx.translate(72, 64);
+    ctx.rotate(1.6);
+    ctx.scale(0.9, 0.9);
+    ctx.beginPath();
+    ctx.moveTo(-48, 38);
+    ctx.bezierCurveTo(-56, -18, -20, -40, 0, -32);
+    ctx.bezierCurveTo(20, -40, 56, -18, 48, 38);
+    ctx.bezierCurveTo(32, 18, -32, 18, -48, 38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  },
 };
 
 // ── Blob renderer factory ──────────────────────────────────────────────────
@@ -74,14 +88,12 @@ function createBlobRenderer(ctx, color, shape, innerCorner) {
     if (t <= 0) return;
     if (t >= 1) { drawFull(); return; }
 
-    // Dim ghost — immediately visible at low opacity
     ctx.save();
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.08;
     ctx.drawImage(blob, 0, 0);
     ctx.restore();
 
-    // Bright layer revealed radially from innerCorner
-    const r    = easeOut(t) * MAX_R;
+    const r    = 50 + t * (MAX_R - 80);
     const soft = Math.max(0, 1 - 80 / Math.max(r, 1));
 
     rctx.clearRect(0, 0, CW, CH);
@@ -111,7 +123,7 @@ function animateInvBump(key) {
   const TOTAL_MS = 200;
   const PEAK     = 0.4;
   const start    = performance.now();
-  function tick(now) {
+  function tickFn(now) {
     const elapsed = now - start;
     let scale;
     if (elapsed < RISE_MS) {
@@ -121,13 +133,12 @@ function animateInvBump(key) {
       scale = 1 + PEAK * (1 - easeOut(t));
     }
     el.style.transform = `scale(${scale.toFixed(4)})`;
-    if (elapsed < TOTAL_MS) {
-      requestAnimationFrame(tick);
-    } else {
+    if (elapsed >= TOTAL_MS) {
+      offTick(tickFn);
       el.style.transform = '';
     }
   }
-  requestAnimationFrame(tick);
+  onTick(tickFn);
 }
 
 // ── Tool fade-in ───────────────────────────────────────────────────────────
@@ -138,16 +149,15 @@ function animateToolFadeIn(toolName) {
   const DURATION = 1000;
   const start    = performance.now();
   el.style.opacity = '0';
-  function tick(now) {
+  function tickFn(now) {
     const t = Math.min((now - start) / DURATION, 1);
     el.style.opacity = easeOut(t).toFixed(4);
-    if (t < 1) {
-      requestAnimationFrame(tick);
-    } else {
+    if (t >= 1) {
+      offTick(tickFn);
       el.style.opacity = '';
     }
   }
-  requestAnimationFrame(tick);
+  onTick(tickFn);
 }
 
 // ── Cooldown animation ─────────────────────────────────────────────────────
@@ -158,21 +168,18 @@ function animateToolFadeIn(toolName) {
 // MAX_R = diagonal * 1.1, so easeOut(t) >= 1/1.1 means the circle covers everything.
 const UNLOCK_THRESHOLD = 1 / 1.1;
 
-function runCooldownAnimation(canvas, drawReveal, drawFull, onUnlock, onDone) {
-  let cancelled = false;
-  let unlocked  = false;
-  const start   = performance.now();
+function runCooldownAnimation(canvas, drawReveal, drawFull, onUnlock, onDone, durationMs = COOLDOWN_MS) {
+  let unlocked = false;
+  const start  = performance.now();
 
-  function tick(now) {
-    if (cancelled) return;
-
+  function tickFn(now) {
     const elapsed  = now - start;
-    const rawT     = Math.min(elapsed / COOLDOWN_MS, 1);
+    const rawT     = Math.min(elapsed / durationMs, 1);
 
     drawReveal(rawT);
 
     const shrinkE  = easeOut(Math.min(elapsed / SHRINK_MS, 1));
-    const recoverE = easeInOut(Math.min(Math.max(elapsed - SHRINK_MS, 0) / COOLDOWN_MS, 1));
+    const recoverE = easeInOut(Math.min(Math.max(elapsed - SHRINK_MS, 0) / durationMs, 1));
     canvas.style.transform = `scale(${1 - shrinkE * 0.05 + recoverE * 0.05})`;
 
     if (!unlocked && easeOut(rawT) >= UNLOCK_THRESHOLD) {
@@ -180,15 +187,14 @@ function runCooldownAnimation(canvas, drawReveal, drawFull, onUnlock, onDone) {
       onUnlock();
     }
 
-    if (rawT < 1) {
-      requestAnimationFrame(tick);
-    } else {
+    if (rawT >= 1) {
+      offTick(tickFn);
       drawFull();
       canvas.style.transform = 'scale(1)';
       if (onDone) onDone();
     }
   }
 
-  requestAnimationFrame(tick);
-  return () => { cancelled = true; };
+  onTick(tickFn);
+  return () => { offTick(tickFn); };
 }

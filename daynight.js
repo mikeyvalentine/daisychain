@@ -23,7 +23,7 @@ function isDay() {
     return 0.5 + 0.5 * easeInOut((t - NIGHT_FADE_START) / (CYCLE_MS - NIGHT_FADE_START));
   }
 
-  function tick() {
+  onTick(function tick() {
     const t          = Date.now() % CYCLE_MS;
     const brightness = skyBrightness(t);
     sky.style.filter = `brightness(${brightness.toFixed(3)})`;
@@ -34,9 +34,5 @@ function isDay() {
       addLog(day ? 'good morning' : 'good night');
       prevDay = day;
     }
-
-    requestAnimationFrame(tick);
-  }
-
-  requestAnimationFrame(tick);
+  });
 })();

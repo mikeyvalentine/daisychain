@@ -2,7 +2,7 @@
 .blob-btn {
   display: block;
   cursor: url('../assets/cursors/cursor-pointer.svg'), pointer;
-  margin: -5px;
+  margin: 0px;
 }
 
 .blob-btn.on-cooldown {
@@ -15,47 +15,11 @@
 
 /* Panel hidden states */
 #tools.panel-hidden {
-  transform: translateX(calc(100% + 40px));
-  opacity: 0;
+  transform: translateX(calc(100% - 12px));
 }
 
 #log.panel-hidden {
-  transform: translateX(calc(-100% - 40px));
-  opacity: 0;
-}
-
-/* Panel toggle buttons */
-.panel-toggle {
-  position: fixed;
-  z-index: 10;
-  background: none;
-  border: none;
-  font-family: var(--font-main);
-  font-size: 20px;
-  color: #000;
-  opacity: 0.2;
-  padding: 6px 4px;
-  line-height: 1;
-  transition: opacity 0.15s ease;
-}
-
-.panel-toggle:hover {
-  opacity: 0.8;
-}
-
-.toggle-left {
-  left: 0;
-  top: 28px;
-}
-
-.toggle-bottom {
-  top: auto;
-  bottom: 14px;
-}
-
-.toggle-right {
-  right: 0;
-  top: 28px;
+  transform: translateX(calc(-100% + 12px));
 }
 
 /* Event log */
@@ -91,7 +55,6 @@
   font-weight: normal;
   white-space: nowrap;
   text-shadow: none;
-  text-transform: capitalize;
   opacity: 0;
   transition: opacity 0.15s ease, color 1.0s ease-out;
   z-index: 200;
@@ -129,7 +92,8 @@
   background: #f8f7f5;
   border: 1px solid #ddd;
   padding: 10px 10px;
-  min-width: 220px;
+  min-width: 510px;
+  min-height: 460px;
   font-size: var(--size-header);
   font-family: var(--font-main);
   text-shadow: none;
@@ -139,6 +103,48 @@
 
 #settings-panel.hidden {
   display: none;
+}
+
+#settings-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.settings-tab {
+  font-family: var(--font-main);
+  font-size: var(--size-regular);
+  letter-spacing: var(--text-spacing);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 10px 6px;
+  color: #aaa;
+  margin-bottom: -1px;
+  cursor: url('../assets/cursors/cursor-pointer.svg'), pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.settings-tab:hover {
+  color: #555;
+}
+
+.settings-tab.active {
+  color: #000;
+  border-bottom-color: #000;
+}
+
+.settings-tab.tab-new {
+  color: #cc0000;
+}
+
+.settings-pane {
+  display: none;
+}
+
+.settings-pane.active {
+  display: block;
 }
 
 .dbg-btn {

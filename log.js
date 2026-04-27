@@ -5,8 +5,8 @@ const LOG_FADE_START = 8000;
 const LOG_EXPIRE     = 10000;
 const gameLog = [];
 
-let _logRafId     = null;
-let _logTimeoutId = null;
+let _logTickActive = false;
+let _logTimeoutId  = null;
 
 function addLog(msg) {
   gameLog.push({ msg, time: performance.now() });
@@ -16,29 +16,28 @@ function addLog(msg) {
 }
 
 function _scheduleLogFade() {
-  if (_logRafId) return;
+  if (_logTickActive) return;
   if (_logTimeoutId) return;
   const oldest = gameLog[0];
   if (!oldest) return;
   const delay = Math.max(0, LOG_FADE_START - (performance.now() - oldest.time));
   _logTimeoutId = setTimeout(() => {
     _logTimeoutId = null;
-    _startLogRaf();
+    _startLogTick();
   }, delay);
 }
 
-function _startLogRaf() {
-  if (_logRafId) return;
-  function tick() {
+function _startLogTick() {
+  if (_logTickActive) return;
+  _logTickActive = true;
+  function tickFn(now) {
     renderLog();
-    const now = performance.now();
-    if (gameLog.some(e => now - e.time < LOG_EXPIRE)) {
-      _logRafId = requestAnimationFrame(tick);
-    } else {
-      _logRafId = null;
+    if (!gameLog.some(e => now - e.time < LOG_EXPIRE)) {
+      offTick(tickFn);
+      _logTickActive = false;
     }
   }
-  _logRafId = requestAnimationFrame(tick);
+  onTick(tickFn);
 }
 
 function renderLog() {

@@ -31,22 +31,22 @@
     animating = true;
     const start = performance.now();
 
-    function tick(now) {
+    function tickFn(now) {
       const t = Math.min((now - start) / DURATION, 1);
       const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
       window.scrollTo(0, from + (target - from) * e);
-      if (t < 1) {
-        requestAnimationFrame(tick);
-      } else {
+      if (t >= 1) {
+        offTick(tickFn);
         window.scrollTo(0, target);
         animating = false;
       }
     }
 
-    requestAnimationFrame(tick);
+    onTick(tickFn);
   }
 
   window.addEventListener('wheel', e => {
+    if (e.target.closest('#inventory, #tools')) { e.stopPropagation(); return; }
     e.preventDefault();
     if (animating) return;
     scrollToIndex(currentIndex() + (e.deltaY > 0 ? 1 : -1));

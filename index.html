@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/game.css">
+  <link rel="stylesheet" href="styles/mobile.css">
 </head>
 <body>
 
@@ -29,22 +30,28 @@
   <!-- Event log -->
   <div id="log"></div>
 
-  <!-- Panel toggles -->
-  <button id="toggle-inv"   class="panel-toggle toggle-left"  data-target="left-panel">‹</button>
-  <button id="toggle-log"   class="panel-toggle toggle-left toggle-bottom" data-target="log">‹</button>
-  <button id="toggle-tools" class="panel-toggle toggle-right" data-target="tools">›</button>
-
   <!-- Settings icon -->
   <canvas id="settings-icon" width="80" height="80"></canvas>
 
   <!-- Settings panel -->
   <div id="settings-panel" class="hidden">
-    <div id="settings-fields"></div>
-    <div id="settings-actions">
-      <button class="dbg-btn" id="st-zero">zero all</button>
-      <button class="dbg-btn" id="st-apply">apply</button>
-      <button class="dbg-btn" id="st-reset-timers">reset timers</button>
-      <button class="dbg-btn" id="st-reset-all">reset all</button>
+    <div id="settings-tabs">
+      <button class="settings-tab active" data-tab="settings">settings</button>
+      <button class="settings-tab" data-tab="sound">sound</button>
+      <button class="settings-tab" data-tab="credits">credits</button>
+      <button class="settings-tab" data-tab="debug">debug</button>
+    </div>
+    <div class="settings-pane active" id="tab-settings"></div>
+    <div class="settings-pane" id="tab-sound"></div>
+    <div class="settings-pane" id="tab-credits"></div>
+    <div class="settings-pane" id="tab-debug">
+      <div id="settings-fields"></div>
+      <div id="settings-actions">
+        <button class="dbg-btn" id="st-zero">zero all</button>
+        <button class="dbg-btn" id="st-apply">apply</button>
+        <button class="dbg-btn" id="st-reset-timers">reset timers</button>
+        <button class="dbg-btn" id="st-reset-all">reset all</button>
+      </div>
     </div>
   </div>
 
@@ -67,6 +74,10 @@
         <canvas id="call-canvas" class="blob-btn" width="144" height="128"></canvas>
         <span class="blob-label">call</span>
       </div>
+      <div class="blob-cell">
+        <canvas id="chop-canvas" class="blob-btn" width="144" height="128"></canvas>
+        <span class="blob-label">chop</span>
+      </div>
     </div>
   </div>
 
@@ -75,6 +86,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.min.js"></script>
   <script src="game.js"></script>
+  <script src="tick.js"></script>
   <script src="tools.js"></script>
   <script src="areas.js"></script>
   <script src="inventory.js"></script>

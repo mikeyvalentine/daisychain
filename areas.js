@@ -1,10 +1,11 @@
 // ── Button definitions ─────────────────────────────────────────────────────
 
 const BUTTONS = [
-  { id: 'forage', resource: 'icthymus', color: '#90d020', shape: 'forage', innerCorner: { x: CW, y: CH } },
-  { id: 'search', resource: 'seefle',   color: '#8888a0', shape: 'search', innerCorner: { x: 0,  y: CH } },
-  { id: 'dig',    resource: 'grupules', color: '#5a2818', shape: 'dig',    innerCorner: { x: CW, y: 0  } },
-  { id: 'call',   resource: 'voice',    color: '#7022cc', shape: 'call',   innerCorner: { x: 0,  y: 0  } },
+  { id: 'forage', cooldownMult: 1,   color: '#90d020', shape: 'forage', innerCorner: { x: CW, y: CH } },
+  { id: 'search', cooldownMult: 1,   color: '#8888a0', shape: 'search', innerCorner: { x: 0,  y: CH } },
+  { id: 'dig',    cooldownMult: 1,   color: '#5a2818', shape: 'dig',    innerCorner: { x: CW, y: 0  } },
+  { id: 'call',   cooldownMult: 5,   color: '#7022cc', shape: 'call',   innerCorner: { x: 0,  y: 0  } },
+  { id: 'chop',   cooldownMult: 1,   color: '#8a6010', shape: 'chop',   innerCorner: { x: CW, y: CH } },
 ];
 
 // ── Loot tables ────────────────────────────────────────────────────────────
@@ -21,8 +22,11 @@ const searchables = [
   { item: 'scrap',       weight: 20, color: '#aaaaaa', type: 'resource' },
   { item: 'rusty blade', weight: 10, color: null,      type: 'tool'     },
   { item: 'collapsible shovel', weight: 10, color: null,      type: 'tool'     },
-
-
+  { item: 'red fox 40 whistle', weight: 5, color: null,      type: 'tool'     },
+  { item: 'bruk forest axe', weight: 5, color: null,      type: 'tool'     },
+  { item: 'oxidized copper harp', weight: 50, color: null,      type: 'tool'     },
+  { item: 'silver plastic discman', weight: 5, color: null,      type: 'tool'     },
+  { item: 'orange foam portapros', weight: 5, color: null,      type: 'tool'     },
 ];
 
 const digables = [
@@ -36,11 +40,19 @@ const callouts = [
   { item: 'voice', weight: 10, color: '#7022cc', type: 'resource', hidden: true },
 ];
 
+const chopables = [
+  { item: null,          weight: 30, color: null,      type: 'nothing'  },
+  { item: 'perltree wood',        weight: 40, color: '#8a6010', type: 'resource' },
+  { item: 'perltree bark',        weight: 20, color: '#5a3a08', type: 'resource' },
+  { item: 'perltree sap',         weight: 10, color: '#c8a040', type: 'resource' },
+];
+
 const LOOT_TABLES = {
   forage: foragables,
   search: searchables,
   dig:    digables,
   call:   callouts,
+  chop:   chopables,
 };
 
 function pickLoot(table) {

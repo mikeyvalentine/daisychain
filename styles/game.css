@@ -4,6 +4,16 @@
   line-height: 1.9;
   font-family: var(--font-main);
   text-transform: capitalize;
+  overflow-y: scroll;
+  max-height: 20vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+
+#inventory::-webkit-scrollbar {
+  display: none;
 }
 
 #inv-title {
@@ -34,10 +44,9 @@
 }
 
 .inv-key {
-  max-width: 300px;
+  flex: 1;
   letter-spacing: var(--text-spacing);
   color: currentColor;
-
 }
 
 .inv-val {
@@ -56,11 +65,21 @@
   transition: transform 0.35s ease, opacity 0.35s ease;
   z-index: 10;
   max-width: 280px;
+  max-height: 20vh;
   font-size: var(--size-header);
   line-height: 1.7;
   font-family: var(--font-main);
   text-transform: capitalize;
   text-align: right;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+
+#tools::-webkit-scrollbar {
+  display: none;
 }
 
 #tools-title {
